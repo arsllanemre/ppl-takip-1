@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-15
@@ -38,6 +41,14 @@ jobs:
           cp -R build/Release-iphoneos/PPL.app Payload/
           codesign -f -s - --entitlements PPL/PPL.entitlements Payload/PPL.app
           zip -qry PPL.ipa Payload
+
+      - name: Xcode projesini repoya ekle
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -f PPL.xcodeproj PPL/Info.plist PPL/PPL.entitlements
+          git diff --cached --quiet || (git commit -m "Xcode projesi [skip ci]" && git push)
 
       - uses: actions/upload-artifact@v4
         with:
