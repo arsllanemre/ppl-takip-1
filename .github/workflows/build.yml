@@ -1,0 +1,45 @@
+name: iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode 26+ seç
+        run: |
+          XC=$(ls -d /Applications/Xcode_2[6-9]*.app 2>/dev/null | grep -vi beta | sort -V | tail -1)
+          if [ -z "$XC" ]; then XC=$(ls -d /Applications/Xcode_2[6-9]*.app 2>/dev/null | sort -V | tail -1); fi
+          if [ -z "$XC" ]; then echo "Xcode 26 bulunamadı"; ls /Applications; exit 1; fi
+          echo "Kullanılan: $XC"
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
+      - name: XcodeGen kur
+        run: brew install xcodegen
+
+      - name: Projeyi oluştur
+        run: xcodegen generate
+
+      - name: Derle
+        run: |
+          xcodebuild -project PPL.xcodeproj -target PPL -configuration Release \
+            -sdk iphoneos SYMROOT="$PWD/build" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+
+      - name: IPA paketle
+        run: |
+          mkdir -p Payload
+          cp -R build/Release-iphoneos/PPL.app Payload/
+          codesign -f -s - --entitlements PPL/PPL.entitlements Payload/PPL.app
+          zip -qry PPL.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PPL-ipa
+          path: PPL.ipa

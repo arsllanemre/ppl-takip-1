@@ -1,0 +1,35 @@
+name: PPL
+options:
+  bundleIdPrefix: com.ppltakip
+  deploymentTarget:
+    iOS: "26.0"
+targets:
+  PPL:
+    type: application
+    platform: iOS
+    sources:
+      - path: PPL
+    info:
+      path: PPL/Info.plist
+      properties:
+        CFBundleDisplayName: PPL Takip
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSHealthShareUsageDescription: "Antrenman sırasında AirPods'un ölçtüğü nabzı göstermek için."
+        NSHealthUpdateUsageDescription: "Antrenmanını Apple Sağlık'a kaydetmek için."
+        UIBackgroundModes: [workout-processing]
+    entitlements:
+      path: PPL/PPL.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ppltakip.app
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
