@@ -1,0 +1,68 @@
+name: Screenshots
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode 26+ seç
+        run: |
+          XC=$(ls -d /Applications/Xcode_2[6-9]*.app 2>/dev/null | grep -vi beta | sort -V | tail -1)
+          if [ -z "$XC" ]; then XC=$(ls -d /Applications/Xcode_2[6-9]*.app 2>/dev/null | sort -V | tail -1); fi
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
+      - run: brew install xcodegen && xcodegen generate
+
+      - name: Simülatör için derle
+        run: |
+          xcodebuild -project PPL.xcodeproj -target PPL -configuration Debug \
+            -sdk iphonesimulator SYMROOT="$PWD/build" CODE_SIGNING_ALLOWED=NO build
+
+      - name: Ekran görüntüleri
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          keys=sorted([k for k in d if "iOS" in k])
+          for k in reversed(keys):
+              ph=[x for x in d[k] if x["name"].startswith("iPhone")]
+              if ph:
+                  pro=[x for x in ph if "Pro" in x["name"] and "Max" not in x["name"]]
+                  print((pro or ph)[-1]["udid"]); break
+          ')
+          echo "Simulator: $UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 || true
+          xcrun simctl install "$UDID" build/Debug-iphonesimulator/PPL.app
+          mkdir -p shots
+          for t in 0 1 2; do
+            xcrun simctl terminate "$UDID" com.arsllanemre.ppltakip || true
+            xcrun simctl launch "$UDID" com.arsllanemre.ppltakip -screenTab $t -AppleLanguages "(tr)" -AppleLocale tr_TR
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "shots/tab$t.png"
+          done
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl terminate "$UDID" com.arsllanemre.ppltakip || true
+          xcrun simctl launch "$UDID" com.arsllanemre.ppltakip -screenTab 0 -AppleLanguages "(tr)" -AppleLocale tr_TR
+          sleep 8
+          xcrun simctl io "$UDID" screenshot "shots/tab0-dark.png"
+          ls -la shots
+
+      - name: Görüntüleri screenshots dalına yükle
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan screenshots
+          git rm -rfq --cached .
+          git add shots
+          git commit -qm "Ekran görüntüleri"
+          git push -f origin screenshots

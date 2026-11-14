@@ -16,15 +16,19 @@ struct PPLApp: App {
 
 struct ContentView: View {
     @EnvironmentObject var hr: HeartRateManager
+    @State private var tab = UserDefaults.standard.integer(forKey: "screenTab")
 
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             WorkoutView()
                 .tabItem { Label("Antrenman", systemImage: "figure.strengthtraining.traditional") }
+                .tag(0)
             HistoryView()
                 .tabItem { Label("Geçmiş", systemImage: "chart.xyaxis.line") }
+                .tag(1)
             ProgramView()
                 .tabItem { Label("Program", systemImage: "list.bullet.rectangle") }
+                .tag(2)
         }
         .onChange(of: hr.running) { _, running in
             UIApplication.shared.isIdleTimerDisabled = running
