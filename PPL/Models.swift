@@ -140,6 +140,17 @@ final class Store: ObservableObject {
         } else {
             data = AppData(rev: 0, program: [], logs: [])
         }
+        if UserDefaults.standard.bool(forKey: "demoHR") {
+            let demo: [(Int, Int)] = [(124, 158), (121, 151), (119, 154), (116, 149), (117, 147), (113, 144)]
+            let recent = Array(data.logs.sorted { $0.date < $1.date }.suffix(demo.count))
+            for (n, l) in recent.enumerated() {
+                if let i = data.logs.firstIndex(where: { $0.id == l.id }) {
+                    data.logs[i].hrAvg = demo[n].0
+                    data.logs[i].hrMax = demo[n].1
+                    data.logs[i].minutes = 62 + n * 3
+                }
+            }
+        }
         if let d = try? Data(contentsOf: draftURL),
            let decoded = try? JSONDecoder().decode([String: Draft].self, from: d) {
             drafts = decoded

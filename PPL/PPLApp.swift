@@ -30,6 +30,9 @@ struct ContentView: View {
                 .tabItem { Label("Program", systemImage: "list.bullet.rectangle") }
                 .tag(2)
         }
+        .onAppear {
+            if UserDefaults.standard.bool(forKey: "demoHR") { hr.startDemo() }
+        }
         .onChange(of: hr.running) { _, running in
             UIApplication.shared.isIdleTimerDisabled = running
         }

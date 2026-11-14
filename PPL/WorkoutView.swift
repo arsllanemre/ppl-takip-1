@@ -60,6 +60,7 @@ struct WorkoutView: View {
                 didInit = true
             }
             store.ensureDraft(day)
+            if UserDefaults.standard.bool(forKey: "demoHR") { fillDemo() }
         }
         .onChange(of: day) { _, newValue in
             store.ensureDraft(newValue)
@@ -86,6 +87,17 @@ struct WorkoutView: View {
             }
         }
         .padding(.top, 4)
+    }
+
+    private func fillDemo() {
+        guard let p = store.plan(day) else { return }
+        let reps = ["12", "11"]
+        for e in p.ex.prefix(2) {
+            for i in 0..<2 {
+                store.update(day, e.id, i) { $0.r = reps[i]; $0.done = true }
+            }
+        }
+        timer.start(74)
     }
 
     private func save() {

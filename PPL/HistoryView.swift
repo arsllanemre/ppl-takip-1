@@ -26,6 +26,14 @@ struct HistoryView: View {
                                 .foregroundStyle(.blue)
                         }
                         .chartYScale(domain: .automatic(includesZero: false))
+                        .chartXAxis {
+                            AxisMarks { value in
+                                AxisGridLine()
+                                AxisValueLabel {
+                                    if let d = value.as(Date.self) { Text(Fmt.short(Fmt.isoString(d))) }
+                                }
+                            }
+                        }
                         .frame(height: 180)
                         if let l = points.last {
                             Text("Çalışma kilosu. Son: \(Fmt.num(l.w)) kg × \(Fmt.num(l.r)) · \(points.count) antrenman")
@@ -52,6 +60,14 @@ struct HistoryView: View {
                         }
                         .chartForegroundStyleScale(["Ortalama": Color.red, "Maks": Color.orange])
                         .chartYScale(domain: .automatic(includesZero: false))
+                        .chartXAxis {
+                            AxisMarks { value in
+                                AxisGridLine()
+                                AxisValueLabel {
+                                    if let d = value.as(Date.self) { Text(Fmt.short(Fmt.isoString(d))) }
+                                }
+                            }
+                        }
                         .frame(height: 180)
                     }
                 }

@@ -79,6 +79,8 @@ final class HeartRateManager: NSObject, ObservableObject {
     /// Antrenmanı bitirir, Apple Sağlık'a kaydeder ve (ortalama, maks, dakika) döner.
     func stop(completion: @escaping (Int?, Int?, Int?) -> Void) {
         guard let s = session, let b = builder, let start = startDate else {
+            running = false
+            startDate = nil
             completion(nil, nil, nil)
             return
         }
@@ -95,6 +97,15 @@ final class HeartRateManager: NSObject, ObservableObject {
         builder = nil
         startDate = nil
         completion(avgValue, maxValue, minutes)
+    }
+
+    /// Simülatörde ekran görüntüsü için sahte veri.
+    func startDemo() {
+        running = true
+        startDate = Date().addingTimeInterval(-23 * 60 - 14)
+        bpm = 134
+        avg = 118
+        maxBpm = 156
     }
 
     func cancel() {
